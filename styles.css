@@ -12,5 +12,15 @@ pre {
   padding-top: 0.1em;
 }
 .headroom {
-  padding-top: 2em; 
+  padding-top: 2em;
+}
+a {
+  color: #2563eb; /* Tailwind's indigo-600 */
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+a:hover {
+  color: #2563eb; /* Tailwind's indigo-800 */
+  text-decoration: underline;
 }
