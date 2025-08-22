@@ -16,23 +16,24 @@ export function createMarketingRules(dataElements) {
 		/* NOTE: there is some silly double up in this code, but only because I'm
 				 trying to faithfully match the Marketing Channel Processing Rules
 		*/
-	  var retVal = false,
-		channel = "Paid Search",
-		channel_detail = "Page Grouping (eVar26)",
-		isFromSearchEngine = this.isNaturalSearch(referrer),
-		url_query = new URLSearchParams(url.search);
-	  if (isFromSearchEngine) {
-		if (/cid=ps|s_kwcid=AL!|s_kwcid=AL!/i.test(url.search)) {
-		  retVal = true;
-		} else if ((url_query.get("cid") || "").startsWith("AL!")) {
-		  retVal = true;
-		} else if (/&ps%3|\?ps%3|&ps:|\?ps:/i.test(url.href)) {
-		  retVal = true;
-		} else if (url_query.get("gclid")) {
-		  retVal = true;
+		var retVal,
+			channel = "Paid Search",
+			channel_detail = "Page Grouping (eVar26)",
+			isFromSearchEngine = this.isNaturalSearch(referrer),
+			url_query = new URLSearchParams(url.search);
+		if (isFromSearchEngine) {
+			if (/cid=ps|s_kwcid=AL!|s_kwcid=AL!/i.test(url.search)) {
+			retVal = true;
+			} else if ((url_query.get("cid") || "").startsWith("AL!")) {
+			retVal = true;
+			} else if (/&ps%3|\?ps%3|&ps:|\?ps:/i.test(url.href)) {
+			retVal = true;
+			} else if (url_query.get("gclid")) {
+			retVal = true;
+			}
 		}
-	  }
-	  return retVal ? { channel, channel_detail } : false;
+		console.log("[isPaidSearch()]", {url_query, channel,channel_detail, retVal});
+		return retVal ? { channel, channel_detail } : false;
 	},
 	// Rule 2: Natural Search
 	isNaturalSearch: function (referrer) {
@@ -79,14 +80,15 @@ export function createMarketingRules(dataElements) {
 			"qwant.com", "so.com", "startpage.com", "syndicatedsearch.goog",
 			"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
 			"yandex.kz", "yandex.ru",
-	  ];
-	  for (var i = 0; i < searchEngineDomains.length; i++) {
-		if (referrer_hostname.endsWith(searchEngineDomains[i])) {
-		  retVal = true;
-		  break;
+		];
+		for (var i = 0; i < searchEngineDomains.length; i++) {
+			if (referrer_hostname.endsWith(searchEngineDomains[i])) {
+			retVal = { channel, channel_detail };
+			break;
+			}
 		}
-	  }
-	  return retVal ? { channel, channel_detail } : false;
+		console.log("[isNaturalSearch()]", {referrer_hostname, matched: searchEngineDomains[i], retVal});
+	 	return retVal
 	},
 	// Rule 3 & 4: Email
 	  // @param {url} url - The URL object to check.
@@ -94,7 +96,6 @@ export function createMarketingRules(dataElements) {
 		var url_query = new URLSearchParams(url.search);
 		var retVal = false,
 			channel = "Email",
-			channel_detail,
 			eVar0 = this._satellite.getVar("cid") || "",
 			query_cid = url_query.get("cid") || "",
 			query_serviceId = url_query.get("serviceid") || "";
@@ -107,8 +108,7 @@ export function createMarketingRules(dataElements) {
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
 		if (query_cid.startsWith("em") || eVar0.includes("em")) {
-			channel_detail = eVar0;
-			retVal = true;
+			retVal = {channel, channel_detail: eVar0};
 		}
 		/* Rule 4: Email
 		IF [ALL] are true:
@@ -118,10 +118,10 @@ export function createMarketingRules(dataElements) {
 			* Channel Detail = "Query String Parmeter `serviceid`"
 		*/
 		else if (query_serviceId.startsWith("em")) {
-			channel_detail = query_serviceId;
-			retVal = true;
+			retVal = {channel, channel_detail: query_serviceId};
 		}
-	  return retVal ? { channel, channel_detail } : false;
+		console.log("[isEmail()]", {eVar0, query_cid, query_serviceId, retVal});
+		return retVal;
 	},
 	// Rule 5: Offline (Vanity url)
 	// @param {url} url - The URL object to check.
@@ -134,17 +134,18 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Offline (Vanity url)"
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
-	  var channel = "Offline (Vanity url)",
-		channel_detail = eVar0;
+		var retVal = true,
+	  		channel = "Offline (Vanity url)",
+			channel_detail = eVar0;
 		if (
 			eVar0.startsWith("vt:") ||
 			eVar0.startsWith("qr:") ||
 			eVar0.startsWith("dm")
 		) {
-			return { channel, channel_detail };
-		} else {
-			return false;
+			retVal = { channel, channel_detail };
 		}
+		console.log("[isOfflineVanityUrl()]", {eVar0, retVal});
+		return retVal;
 	},
 	// Rule 6: SMS / Push
 	isSMSorPushNotification: function () {
@@ -160,9 +161,10 @@ export function createMarketingRules(dataElements) {
 			channel = "SMS / Push",
 			eVar0 = this._satellite.getVar("cid") || "";
 		if (eVar0.startsWith("sms:") || eVar0.startsWith("push:")) {
-			retVal = true;
+			retVal = { channel, channel_detail: eVar0 };
 		}
-		return retVal ? { channel, channel_detail: eVar0 } : false;
+		console.log("[isSMSorPushNotification()]", {eVar0, retVal});
+		return retVal;
 	},
 	// Rule 7: Display ClickThrough
 	isDisplayClickThrough: function (url) {
@@ -176,27 +178,22 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Display ClickThrough"
 			* Channel Detail = "Query String Parameter `cid`"
 		*/
-		var url_query = new URLSearchParams(url.search);
 		var retVal = false,
-			channel = "Display ClickThrough",
-			channel_detail = url_query.get("cid"),
+			url_query = new URLSearchParams(url.search);
+		var channel = "Display ClickThrough",
 			eVar0 = this._satellite.getVar("cid") || "",
 			eVar33 = this._satellite.getVar("clean_url") || "",
 			query_cid = url_query.get("cid") || "",
 			query_ef_id = url_query.get("ef_id") || "";
-		/*
-		console.log("[isDisplayClickThrough]", {
-			channel,channel_detail,eVar0,eVar33,query_cid
-		});
-		*/
 		if( /^di/i.test(query_cid)   ||  // ?cid starts with `di`
 			/^di:/i.test(eVar0)      ||  // cid reports starts with `di:`
 			/:d$/i.test(eVar33)      ||  // clean_url ends with `:d`
 			/:d$/i.test(query_ef_id)     // ?ef_id ends with `:d`
 		){
-			retVal = true
+			retVal = {channel, channel_detail: query_cid}
 		}
-		return retVal ?  {channel, channel_detail: query_cid} : false
+		console.log("[isDisplayClickThrough()]", {eVar0, eVar33, query_cid, query_ef_id, retVal});
+		return retVal;
 	},
 
 	// Rule 8: Social Networks
@@ -214,11 +211,6 @@ export function createMarketingRules(dataElements) {
 			referrer_hostname = referrer instanceof URL ? referrer.hostname : "",
 			channel = "Social Networks",
 			eVar0 = this._satellite.getVar("cid") || "";
-		/*
-		console.log("[isSocialNetworks]", {
-			url, referrer, referrer_hostname, eVar0
-		});
-		*/
 		const socialNetworks = [
 			'instagram.com', 'facebook.com', 'linkedin.com', 'twitter.com', 'plus.google.com',
 			'orkut.com', 'friendster.com', 'livejournal.com', 'blogspot.com', 'wordpress.com',
@@ -234,13 +226,14 @@ export function createMarketingRules(dataElements) {
 		// The logic checks if the hostname ends with any of the domains in the list
         for (var i = 0; i < socialNetworks.length; i++) {
             if (referrer_hostname.endsWith(socialNetworks[i])) {
-                retVal = true;
+                retVal = {channel, channel_detail:referrer_hostname};
             }
         }
 		if(eVar0.startsWith('sc:')) {
-			retVal = true;
+			retVal = {channel, channel_detail:referrer_hostname};
 		}
-		return retVal ? {channel, channel_detail:referrer_hostname} : false
+		console.log("[isSocialNetworks()]", {eVar0, referrer_hostname, retVal});
+		return retVal;
 	},
 
 	// Rule 9: Third Party
@@ -252,14 +245,15 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Third Party"
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
-		var eVar0 = this._satellite.getVar('cid') || "";
+		var retVal = false,
+			eVar0 = this._satellite.getVar('cid') || "";
 		var channel = "Third Party",
 			channel_detail = eVar0;
 		if (eVar0.startsWith('tp:')) {
 			return {channel, channel_detail};
-		}else{
-			return false;
 		}
+		console.log("[isThirdParty()]", {eVar0, retVal});
+		return retVal;
 	},
 
 	// Rule 10: Universal Links
@@ -271,14 +265,15 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Universal Links"
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
-		var eVar0 = this._satellite.getVar('cid') || "";
+		var retVal = false,
+			eVar0 = this._satellite.getVar('cid') || "";
 		var channel = "Universal Links",
 			channel_detail = eVar0;
 		if (eVar0.startsWith('ul:')) {
 			return {channel, channel_detail};
-		}else{
-			return false;
 		}
+		console.log("[isUniversalLink()]", {eVar0, retVal});
+		return retVal;
 	},
 
 	// Rule 11 Magic Links
@@ -302,7 +297,6 @@ export function createMarketingRules(dataElements) {
 	},
 
 	// Rule 12 & 13 Referring Domains
-	/* TODO: Define Referring Domain and First Hit of Visit */
 	isReferringDomains: function(referrer, isFirstHitOfVisit){
 		/* Rule 12 Referring Domains
 		IF [ALL] are true:
