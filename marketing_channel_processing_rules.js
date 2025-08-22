@@ -109,7 +109,7 @@ export function createMarketingRules(dataElements) {
 		if (query_cid.startsWith("em") || eVar0.includes("em")) {
 			channel_detail = eVar0;
 			retVal = true;
-		} 
+		}
 		/* Rule 4: Email
 		IF [ALL] are true:
 			* Query String Parameter `serviceid` [STARTS WITH] `em`
@@ -230,7 +230,7 @@ export function createMarketingRules(dataElements) {
 			'dailymotion.com', 'photobucket.com', 'fotolog.com', 'smugmug.com', 'classmates.com', 'myyearbook.com', 'mylife.com', 'tagged.com', 'brightkite.com', 'ning.com',
 			'bebo.com', 'hi5.com', 'yuku.com', 'cafemom.com', 'xanga.com'
 			];
-		
+
 		// The logic checks if the hostname ends with any of the domains in the list
         for (var i = 0; i < socialNetworks.length; i++) {
             if (referrer_hostname.endsWith(socialNetworks[i])) {
@@ -317,7 +317,7 @@ export function createMarketingRules(dataElements) {
 			isFirstHitOfVisit = this._satellite.getVar('page_views_session') === "1" ? true : false,
 			eVar0 = this._satellite.getVar('cid') || "",
 			channel = "Referring Domains";
-		console.log("[isReferringDomains()]", {isFirstHitOfVisit, sessionPageViews});
+		//console.log("[isReferringDomains()]", {isFirstHitOfVisit, sessionPageViews});
 		if (referrer_hostname && isFirstHitOfVisit) {
 			retVal = true;
 		}
@@ -359,12 +359,12 @@ export function createMarketingRules(dataElements) {
 	},
 
 	/* Rule 15 Display (View and Click) */
-	/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	NOTE: THIS RULE WOULD NEVER BE TRIGGERED
-	BECAUSE 14 WOULD CATCH IT FIRST
-	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	*/
 	isDisplayViewAndClick: function(url){
+		/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		BUG: THIS RULE WOULD NEVER BE TRIGGERED
+		BECAUSE 14 WOULD CATCH IT FIRST
+		!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		*/
 		/* Rule 15 Display (View and Click)
 		IF [ALL] are true:
 			* AMO ID [STARTS WITH] "AC!"
@@ -376,16 +376,119 @@ export function createMarketingRules(dataElements) {
 		*/
 		var retVal = false,
 			url_query = new URLSearchParams(url.search),
-			cleanURL = this._satellite.getVar('clean_url') || "",
-			channel = "Display (View and Click)",
-			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "";
+			channel = "Display (View and Click)";
 		var s_kwcid = url_query.get('s_kwcid') || "",
 			eVar0 = url_query.get('cid');
 		if (s_kwcid.startsWith('AC!')) {
 			retVal = {channel,channel_detail:eVar0}
 		}
 		return retVal
-	}
+	},
+
+	/* Rule 16 Origin App */
+	isOriginApp: function(url, userAgent, digitalData){
+		/* Rule 16 Origin App
+		IF [ANY] are true:
+			* Native Wrapper? [EQUALS] `yes`
+			* Query String Parmeter `openInExtBrowser` [EQUALS] `true`
+			* Query String Parmeter `oiw` [EQUALS] `yes` || `true`
+		THEN
+			* Channel = "Origin App"
+			* Channel Detail = "Page Domain And Path"
+		*/
+		var retVal = false,
+			native_wrapper = this._satellite.getVar('is_native_app'),
+			url_query = new URLSearchParams(url.search),
+			channel = "Origin App";
+		var openInExtBrowser = url_query.get('openInExtBrowser') || "",
+			oiw = url_query.get('oiw') || "";
+
+		if (native_wrapper === "yes" || openInExtBrowser === "true" || oiw === "yes" || oiw === "true") {
+			retVal = {channel,channel_detail:"Page Domain And Path"}
+		}
+		// Uncomment to debug
+		console.log("[isOriginApp()]", {native_wrapper, openInExtBrowser, oiw, retVal});
+		return retVal
+	},
+
+	/* Rule 17 Internal */
+	isInternal: function(referrer){
+		/* Rule 17 Internal
+		IF [ALL] are true:
+			* Referrer Matches Internal URL Filters ie pages.retail.originenergy.com.au || careers.originenergy.com.au || littlebigidea.com.au || products.originenergy.com.au || pageup.com.au || originfoundation.com.au || aplng.com.au || originlpg.com.au || .originenergy.com.au || online.originenergy.com.au || movingservices.originenergy.com.au || originfoundationknowledgehub.com.au || dataportal-local.originenergy  || id.originenergy.com.au || employeeoffer.originenergy.com.au || online.originbroadband.com.au || support.originenergy.com.au || cleverly.originenergy.com.au  || originfoundation.org.au
+			* Is First Hit of Visit
+
+		THEN
+			* Channel = "Internal"
+			* Channel Detail = "Page"
+		*/
+		var retVal = false,
+			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
+			channel = "Internal",
+			channel_detail = "Page"
+		if (!referrer_hostname) {
+            retVal = false;
+        }
+		// This list of internal domains extracted from Adobe on 1/8/2025.
+		var internalDomains = ["pages.retail.originenergy.com.au", "careers.originenergy.com.au",
+			"littlebigidea.com.au", "products.originenergy.com.au", "pageup.com.au",
+			"originfoundation.com.au", "aplng.com.au", "originlpg.com.au", ".originenergy.com.au",
+			"online.originenergy.com.au", "movingservices.originenergy.com.au",
+			"originfoundationknowledgehub.com.au", "dataportal-local.originenergy",
+			"id.originenergy.com.au", "employeeoffer.originenergy.com.au",
+			"online.originbroadband.com.au", "support.originenergy.com.au",
+			"cleverly.originenergy.com.au", "originfoundation.org.au" ];
+
+        // The logic checks if the hostname ends with any of the domains in the list
+        for (var i = 0; i < internalDomains.length; i++) {
+            if (referrer_hostname.endsWith(internalDomains[i])) {
+                retVal = true;
+            }
+        }
+        return retVal ? {channel,channel_detail} : false
+	},
+
+	/* Rule 18 Personalisation */
+	isPersonalisation: function(){
+		/* Rule 18 Personalisation
+		IF [ANY] are true:
+			* -Personalisation-Activity-(eVar123)-
+			* CID Reports (eVar0) [STARTS WITH] `ccd` || `ccrf` || `hpb`
+		THEN
+			* Channel = "Personalisation"
+			* Channel Detail = "Button / Link Name (eVar29)"
+		*/
+		var eVar0 = this._satellite.getVar('cid') || "";
+		var channel = "Personalisation",
+			channel_detail = "Button / Link Name (eVar29)";
+		if (eVar0.startsWith('ccd') || eVar0.startsWith('ccrf') || eVar0.startsWith('hpb')) {
+			return {channel, channel_detail};
+		}else{
+			return false;
+		}
+	},
+
+	/* Rule 19 Direct */
+	isDirect: function(referrer){
+		/* Rule 19 Direct
+		IF [ALL] are true:
+			* Referrer [DOES NOT EXIST]
+			* Is First Hit of Visit
+		THEN
+			* Channel = "Direct"
+			* Channel Detail = "Page"
+		*/
+		var retVal = false,
+			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
+			isFirstHitOfVisit = this._satellite.getVar('page_views_session') === "1" ? true : false,
+			channel = "Direct",
+			channel_detail = "Page";
+		if (referrer_hostname === "" && isFirstHitOfVisit) {
+			retVal = true;
+		}
+		//console.log("[isDirect()]", {referrer_hostname, isFirstHitOfVisit, channel, channel_detail});
+		return retVal ? {channel,channel_detail} : false
+	},
   }
   return marketingRules;
 }

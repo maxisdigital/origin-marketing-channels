@@ -11,6 +11,8 @@ const examplesSelect = document.getElementById("examples");
 const testButton = document.getElementById("testButton");
 const resultsBody = document.getElementById("results-body");
 const pageViewsInput = document.getElementById("page_views_session");
+const userAgentInput = document.getElementById("user_agent");
+const digitalDataInput = document.getElementById("digital_data");
 
 /**
  * Populates the dropdown with examples from the globals file.
@@ -29,6 +31,17 @@ function populateExamples() {
 }
 
 /**
+ * Preselect a preferred example.
+ */
+function preselectExample() {
+  const preferredExample = "originApp6"; // Change this to your preferred example key
+  if (examples[preferredExample]) {
+	examplesSelect.value = preferredExample;
+	handleExampleChange(); // Trigger the change handler to populate inputs
+  }
+}
+
+/**
  * Handles the change event for the examples dropdown.
  */
 function handleExampleChange() {
@@ -38,6 +51,12 @@ function handleExampleChange() {
     urlInput.value = example.href || "";
     referrerInput.value = example.referrer || "";
     pageViewsInput.value = example.page_views_session || "1";
+    userAgentInput.value = example.userAgent || "Mozilla/5.0 (compatible; default-ua/1.0)";
+	if(example.isNative){
+		digitalDataInput.value = JSON.stringify({"isNative":example.isNative} || {});
+	}else if(example.events){
+		digitalDataInput.value = JSON.stringify({"events":example.events} || {});
+	}
     runTests(); // Automatically run test on selection
   }
 }
@@ -46,9 +65,11 @@ function handleExampleChange() {
  * The core function to run the marketing channel tests.
  */
 function runTests() {
-  const urlValue = urlInput.value;
+  const urlValue = urlInput.value || "https://www.originenergy.com.au/";
   const referrerValue = referrerInput.value;
   const pageViewsValue = pageViewsInput.value;
+  const userAgentValue = userAgentInput.value;
+  const digitalDataValue = JSON.parse(digitalDataInput.value.trim());;
 
   if (!urlValue) {
     resultsBody.innerHTML =
@@ -73,6 +94,25 @@ function runTests() {
     }
   }
 
+  let currentUserAgent = "";
+  if (userAgentValue) {
+    try {
+      currentUserAgent = userAgentValue;
+    } catch (e) {
+      // It's okay for userAgent to be empty, treat as empty string
+    }
+  }
+
+  let currentDigitalData = {};
+  if (digitalDataValue) {
+    try {
+      currentDigitalData = digitalDataValue;
+    } catch (e) {
+      // It's okay for currentDigitalData to be empty, treat as empty object
+    }
+  }
+
+
   // Set up the mock window object for the data elements and rules to use
   const mockWindow = {
     location: {
@@ -85,6 +125,10 @@ function runTests() {
     sessionStorage: {
       "com.adobe.reactor.core.visitorTracking.pagesViewed": pageViewsValue,
     },
+    navigator: {
+      userAgent: currentUserAgent || "Mozilla/5.0 (compatible; default-ua/1.0)",
+    },
+    digitalData: currentDigitalData
   };
 
   // Create instances of the rules and data elements with the current context
@@ -136,6 +180,31 @@ function runTests() {
       func: () =>
         marketingRules.isDisplayViewThrough(currentUrl, currentReferrer),
     },
+    {
+      name: "15. Display View & Click",
+      func: () =>
+        marketingRules.isDisplayViewAndClick(currentUrl, currentReferrer),
+    },
+    {
+      name: "16. Origin App",
+      func: () =>
+        marketingRules.isOriginApp(currentUrl, currentUserAgent, currentDigitalData),
+    },
+    {
+      name: "17. Internal",
+      func: () =>
+        marketingRules.isInternal(currentReferrer),
+    },
+    {
+      name: "18. Personalisation",
+      func: () =>
+        marketingRules.isPersonalisation(currentUrl),
+    },
+    {
+      name: "19. Direct",
+      func: () =>
+        marketingRules.isDirect(currentReferrer),
+    },
   ];
 
   let firstMatchFound = false;
@@ -166,5 +235,6 @@ function runTests() {
 
 // Event Listeners
 document.addEventListener("DOMContentLoaded", populateExamples);
+document.addEventListener("DOMContentLoaded", preselectExample);
 examplesSelect.addEventListener("change", handleExampleChange);
 testButton.addEventListener("click", runTests);
