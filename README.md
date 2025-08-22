@@ -8,7 +8,6 @@ Marketing Channel reports tell you how users arrived on your site (e.g., Paid Se
 
 This repository aims to codify the marketing channel processing rules in the Adobe Analytics admin console into a series of Javascript rules for Adobe Launch so that the data can be mapped to a different eVar, and the business can restructure the regular Marketing Channel rules per Adobe's guidance: [Attribution with Marketing Channels - Best Practices](https://experienceleague.adobe.com/en/docs/analytics/components/marketing-channels/mchannel-best-practices), while still retaining the old channels and providing a benchmark.
 
-
 ## Interactive test tool
 
 1. Choose an example from the drop down,
@@ -22,10 +21,10 @@ https://maxisdigital.github.io/origin-marketing-channels/
 ## Todo
 
 - [X] HTML test page
-- [ ] Complete scripting for rules:
-  - [ ] Rule 16 Origin App,
-  - [ ] Rule 17 Internal,
-  - [ ] Rule 18 Personalisation,
-  - [ ] Rule 19 Direct
+- [X] Complete scripting for rules:
+  - [X] Rule 16 Origin App,
+  - [X] Rule 17 Internal,
+  - [X] Rule 18 Personalisation,
+  - [X] Rule 19 Direct
 - [ ] Script based test runner
 - [ ] Test against a CSV file.
