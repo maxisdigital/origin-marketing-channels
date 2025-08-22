@@ -19,6 +19,36 @@ const csvUploadInput = document.getElementById("csv_upload");
 const downloadCsvButton = document.getElementById("download_csv");
 let processedCsvContent = null;
 
+const viewCsvResultsButton = document.getElementById("view_csv_results");
+const csvResultsTableDiv = document.getElementById("csv-results-table");
+
+function renderCsvResultsTable() {
+	if (!processedCsvContent) return;
+	// Parse CSV to array
+	loadPapaParse(() => {
+		const parsed = Papa.parse(processedCsvContent);
+		const data = parsed.data;
+		if (!data || !data.length) return;
+		let html = '<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>';
+		for (const header of data[0]) {
+			html += `<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header}</th>`;
+		}
+		html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
+		for (let i = 1; i < data.length; i++) {
+			const row = data[i];
+			if (!row.length || row.every(cell => cell === "")) continue;
+			html += '<tr>';
+			for (const cell of row) {
+				html += `<td class="px-4 py-2 whitespace-nowrap text-sm">${cell}</td>`;
+			}
+			html += '</tr>';
+		}
+		html += '</tbody></table>';
+		csvResultsTableDiv.innerHTML = html;
+		csvResultsTableDiv.style.display = "block";
+	});
+}
+
 // Load PapaParse from CDN
 function loadPapaParse(callback) {
 	if (window.Papa) return callback();
@@ -105,7 +135,8 @@ function handleCsvUpload(event) {
 					output.push(row.concat([testResult.rule, testResult.channel, testResult.detail]));
 				}
 				processedCsvContent = Papa.unparse(output);
-				downloadCsvButton.style.display = "inline-block";
+				viewCsvResultsButton.style.display = "inline-block";
+				csvResultsTableDiv.style.display = "none";
 			},
 			error: function(err) { alert("Error parsing CSV: " + err.message); }
 		});
@@ -122,6 +153,10 @@ function handleDownloadCsv() {
 	document.body.appendChild(a);
 	a.click();
 	setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+function handleViewCsvResults() {
+	renderCsvResultsTable();
 }
 
 /**
@@ -352,3 +387,5 @@ examplesSelect.addEventListener("change", handleExampleChange);
 testButton.addEventListener("click", runTests);
 csvUploadInput.addEventListener("change", handleCsvUpload);
 downloadCsvButton.addEventListener("click", handleDownloadCsv);
+
+viewCsvResultsButton.addEventListener("click", handleViewCsvResults);
