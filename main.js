@@ -34,7 +34,7 @@ function populateExamples() {
  * Preselect a preferred example.
  */
 function preselectExample() {
-  const preferredExample = "originApp6"; // Change this to your preferred example key
+  const preferredExample = "paidSearch"; // Change this to your preferred example key
   if (examples[preferredExample]) {
 	examplesSelect.value = preferredExample;
 	handleExampleChange(); // Trigger the change handler to populate inputs
