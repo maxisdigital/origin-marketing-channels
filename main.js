@@ -14,6 +14,116 @@ const pageViewsInput = document.getElementById("page_views_session");
 const userAgentInput = document.getElementById("user_agent");
 const digitalDataInput = document.getElementById("digital_data");
 
+// CSV upload/download elements
+const csvUploadInput = document.getElementById("csv_upload");
+const downloadCsvButton = document.getElementById("download_csv");
+let processedCsvContent = null;
+
+// Load PapaParse from CDN
+function loadPapaParse(callback) {
+	if (window.Papa) return callback();
+	const script = document.createElement('script');
+	script.src = 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js';
+	script.onload = callback;
+	document.head.appendChild(script);
+}
+
+function getTestResultForRow(row, headers) {
+	// Map CSV row to test inputs
+	// Expect columns: url, referrer, page_views_session, user_agent, digital_data
+	// Fallbacks for missing columns
+	const urlValue = row[headers.indexOf('url')] || row[headers.indexOf('href')] || "";
+	const referrerValue = row[headers.indexOf('referrer')] || "";
+	const pageViewsValue = row[headers.indexOf('page_views_session')] || "1";
+	const userAgentValue = row[headers.indexOf('user_agent')] || "Mozilla/5.0 (compatible; default-ua/1.0)";
+	let digitalDataValue = {};
+	const digitalDataRaw = row[headers.indexOf('digital_data')] || "";
+	if (digitalDataRaw) {
+		try { digitalDataValue = JSON.parse(digitalDataRaw); } catch (e) { digitalDataValue = {}; }
+	}
+
+	let currentUrl;
+	try { currentUrl = new URL(urlValue); } catch (e) { return { rule: 'Invalid URL', channel: 'Error', detail: 'Error' }; }
+	let currentReferrer = "";
+	if (referrerValue) { try { currentReferrer = new URL(referrerValue); } catch (e) { currentReferrer = ""; } }
+	let currentUserAgent = userAgentValue;
+	let currentDigitalData = digitalDataValue;
+
+	const mockWindow = {
+		location: { href: currentUrl.href, search: currentUrl.search },
+		document: { referrer: currentReferrer ? currentReferrer.href : "" },
+		sessionStorage: { "com.adobe.reactor.core.visitorTracking.pagesViewed": pageViewsValue },
+		navigator: { userAgent: currentUserAgent },
+		digitalData: currentDigitalData
+	};
+	const dataElements = createDataElements(mockWindow);
+	const marketingRules = createMarketingRules(dataElements);
+
+	// Same rule order as runTests
+	const ruleExecutionOrder = [
+		{ name: "1. Paid Search", func: () => marketingRules.isPaidSearch(currentUrl, currentReferrer) },
+		{ name: "2. Natural Search", func: () => marketingRules.isNaturalSearch(currentReferrer) },
+		{ name: "3 & 4. Email", func: () => marketingRules.isEmail(currentUrl) },
+		{ name: "5. Offline / Vanity URL", func: () => marketingRules.isOfflineVanityUrl(currentUrl) },
+		{ name: "6. SMS / Push", func: () => marketingRules.isSMSorPushNotification() },
+		{ name: "7. Display ClickThrough", func: () => marketingRules.isDisplayClickThrough(currentUrl) },
+		{ name: "8. Social Networks", func: () => marketingRules.isSocialNetworks(currentUrl, currentReferrer) },
+		{ name: "9. Third Party", func: () => marketingRules.isThirdParty() },
+		{ name: "10. Universal Link", func: () => marketingRules.isUniversalLink() },
+		{ name: "11. Magic Link", func: () => marketingRules.isMagicLink() },
+		{ name: "12 & 13. Referring Domains", func: () => marketingRules.isReferringDomains(currentReferrer) },
+		{ name: "14. Display ViewThrough", func: () => marketingRules.isDisplayViewThrough(currentUrl, currentReferrer) },
+		{ name: "15. Display View & Click", func: () => marketingRules.isDisplayViewAndClick(currentUrl, currentReferrer) },
+		{ name: "16. Origin App", func: () => marketingRules.isOriginApp(currentUrl, currentUserAgent, currentDigitalData) },
+		{ name: "17. Internal", func: () => marketingRules.isInternal(currentReferrer) },
+		{ name: "18. Personalisation", func: () => marketingRules.isPersonalisation(currentUrl) },
+		{ name: "19. Direct", func: () => marketingRules.isDirect(currentReferrer) },
+	];
+	for (let rule of ruleExecutionOrder) {
+		const result = rule.func();
+		if (result) {
+			return { rule: rule.name, channel: result.channel || "Error", detail: result.channel_detail || "Error" };
+		}
+	}
+	return { rule: "No Match", channel: "No Match", detail: "N/A" };
+}
+
+function handleCsvUpload(event) {
+	const file = event.target.files[0];
+	if (!file) return;
+	loadPapaParse(() => {
+		Papa.parse(file, {
+			complete: function(results) {
+				const data = results.data;
+				if (!data || !data.length) return alert("CSV is empty or invalid.");
+				const headers = data[0];
+				const output = [headers.concat(["Tested Rule", "Matched Channel", "Channel Detail"])]
+				for (let i = 1; i < data.length; i++) {
+					const row = data[i];
+					if (!row.length || row.every(cell => cell === "")) continue;
+					const testResult = getTestResultForRow(row, headers);
+					output.push(row.concat([testResult.rule, testResult.channel, testResult.detail]));
+				}
+				processedCsvContent = Papa.unparse(output);
+				downloadCsvButton.style.display = "inline-block";
+			},
+			error: function(err) { alert("Error parsing CSV: " + err.message); }
+		});
+	});
+}
+
+function handleDownloadCsv() {
+	if (!processedCsvContent) return;
+	const blob = new Blob([processedCsvContent], { type: "text/csv" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = "sample_results.csv";
+	document.body.appendChild(a);
+	a.click();
+	setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
 /**
  * Populates the dropdown with examples from the globals file.
  */
@@ -240,3 +350,5 @@ document.addEventListener("DOMContentLoaded", populateExamples);
 document.addEventListener("DOMContentLoaded", preselectExample);
 examplesSelect.addEventListener("change", handleExampleChange);
 testButton.addEventListener("click", runTests);
+csvUploadInput.addEventListener("change", handleCsvUpload);
+downloadCsvButton.addEventListener("click", handleDownloadCsv);
