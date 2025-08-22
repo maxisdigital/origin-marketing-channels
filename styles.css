@@ -9,12 +9,14 @@ body {
   color: #166534; /* Green-800 */
 }
 pre {
-  padding-top: 0.1em;
+  padding: 1em;
+  margin: 1em 0em;
+  border: 1px solid #ccc;
 }
 .headroom {
   padding-top: 2em;
 }
-a {
+a, .blue {
   color: #2563eb; /* Tailwind's indigo-600 */
   text-decoration: underline;
   cursor: pointer;
