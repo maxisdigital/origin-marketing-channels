@@ -290,14 +290,15 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Magic Links"
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
-		var eVar0 = this._satellite.getVar('cid') || "";
+		var retVal = false,
+			eVar0 = this._satellite.getVar('cid') || "";
 		var channel = "Magic Links",
 			channel_detail = eVar0;
 		if (eVar0.startsWith('ml:')) {
 			return {channel, channel_detail};
-		}else{
-			return false;
 		}
+		console.log("[isMagicLink()]", {eVar0, retVal});
+		return retVal;
 	},
 
 	// Rule 12 & 13 Referring Domains
@@ -329,9 +330,10 @@ export function createMarketingRules(dataElements) {
 			* Channel Detail = "Referring Domain"
 		*/
 		else if (eVar0.startsWith('rd:')) {
-			retVal = true;
+			retVal = {channel,channel_detail:referrer_hostname};
 		}
-		return retVal ? {channel,channel_detail:referrer_hostname} : false
+		console.log("[isReferringDomains()]", {eVar0, referrer_hostname, sessionPageViews, retVal});
+		return retVal
 	},
 
 	/* Rule 14 Display ViewThrough */
@@ -355,6 +357,7 @@ export function createMarketingRules(dataElements) {
 		if (cleanURL.endsWith(':i') || s_kwcid.startsWith('AC!')) {
 			retVal = {channel,channel_detail:referrer_hostname}
 		}
+		console.log("[isDisplayViewThrough()]", {s_kwcid, url_query, cleanURL, referrer_hostname, retVal});
 		return retVal
 	},
 
@@ -382,6 +385,7 @@ export function createMarketingRules(dataElements) {
 		if (s_kwcid.startsWith('AC!')) {
 			retVal = {channel,channel_detail:eVar0}
 		}
+		console.log("[isDisplayViewAndClick()]", {eVar0, s_kwcid, url_query, retVal});
 		return retVal
 	},
 
@@ -445,6 +449,7 @@ export function createMarketingRules(dataElements) {
                 retVal = true;
             }
         }
+		console.log("[isInternal()]", {referrer_hostname, retVal});
         return retVal ? {channel,channel_detail} : false
 	},
 
@@ -458,14 +463,15 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Personalisation"
 			* Channel Detail = "Button / Link Name (eVar29)"
 		*/
-		var eVar0 = this._satellite.getVar('cid') || "";
+		var retVal = false,
+			eVar0 = this._satellite.getVar('cid') || "";
 		var channel = "Personalisation",
 			channel_detail = "Button / Link Name (eVar29)";
 		if (eVar0.startsWith('ccd') || eVar0.startsWith('ccrf') || eVar0.startsWith('hpb')) {
-			return {channel, channel_detail};
-		}else{
-			return false;
+			retVal = {channel, channel_detail};
 		}
+		console.log("[isPersonalisation()]", {eVar0, retVal});
+		return retVal
 	},
 
 	/* Rule 19 Direct */
@@ -484,10 +490,10 @@ export function createMarketingRules(dataElements) {
 			channel = "Direct",
 			channel_detail = "Page";
 		if (referrer_hostname === "" && isFirstHitOfVisit) {
-			retVal = true;
+			retVal = {channel,channel_detail};
 		}
-		//console.log("[isDirect()]", {referrer_hostname, isFirstHitOfVisit, channel, channel_detail});
-		return retVal ? {channel,channel_detail} : false
+		console.log("[isDirect()]", {referrer_hostname, isFirstHitOfVisit, retVal});
+		return retVal
 	},
   }
   return marketingRules;

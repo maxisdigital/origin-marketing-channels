@@ -56,6 +56,8 @@ function handleExampleChange() {
 		digitalDataInput.value = JSON.stringify({"isNative":example.isNative} || {});
 	}else if(example.events){
 		digitalDataInput.value = JSON.stringify({"events":example.events} || {});
+	}else{
+		digitalDataInput.value = "";
 	}
     runTests(); // Automatically run test on selection
   }
@@ -69,7 +71,7 @@ function runTests() {
   const referrerValue = referrerInput.value;
   const pageViewsValue = pageViewsInput.value;
   const userAgentValue = userAgentInput.value;
-  const digitalDataValue = JSON.parse(digitalDataInput.value.trim());;
+  const digitalDataValue = digitalDataInput.value.trim() ? JSON.parse(digitalDataInput.value.trim()) : {};
 
   if (!urlValue) {
     resultsBody.innerHTML =

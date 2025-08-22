@@ -134,7 +134,7 @@ export function createDataElements(mockWindow) {
 				retVal = (digitalData.isNative = "no");
 			}
 		}
-		console.log("[is_native_app()]", {retVal, location, digitalData, 'query_param_scope': this.getVar('query_param_scope')});
+		//console.log("[is_native_app()]", {retVal, location, digitalData, 'query_param_scope': this.getVar('query_param_scope')});
 		return retVal;
 	},
 	query_string: function(){
