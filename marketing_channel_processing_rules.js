@@ -21,6 +21,7 @@ export function createMarketingRules(dataElements) {
 			channel_detail = "Page Grouping (eVar26)",
 			isFromSearchEngine = this.isNaturalSearch(referrer),
 			url_query = new URLSearchParams(url.search);
+		// Only proceed if the referrer is a search engine.
 		if (isFromSearchEngine) {
 			if (/cid=ps|s_kwcid=AL!|s_kwcid=AL!/i.test(url.search)) {
 			retVal = true;
@@ -80,8 +81,9 @@ export function createMarketingRules(dataElements) {
 			"naver.com", "petalsearch.com", "presearch.com",
 			"qwant.com", "so.com", "startpage.com", "syndicatedsearch.goog",
 			"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
-			"yandex.kz", "yandex.ru",
-		];
+			"yandex.kz", "yandex.ru", ];
+
+        // The logic checks if the hostname ends with any of the domains in the list
 		for (var i = 0; i < searchEngineDomains.length; i++) {
 			if (referrer_hostname.endsWith(searchEngineDomains[i])) {
 			retVal = { channel, channel_detail };
@@ -135,7 +137,7 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Offline (Vanity url)"
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
-		var retVal = false,
+		var retVal = true,
 	  		channel = "Offline (Vanity url)",
 			channel_detail = eVar0;
 		if (
@@ -187,9 +189,9 @@ export function createMarketingRules(dataElements) {
 			query_cid = url_query.get("cid") || "",
 			query_ef_id = url_query.get("ef_id") || "";
 		if( /^di/i.test(query_cid)   ||  // ?cid starts with `di`
-			/^di\:/i.test(eVar0)      ||  // cid reports starts with `di:`
-			/\:d$/i.test(eVar33)      ||  // clean_url ends with `:d`
-			/\:d$/i.test(query_ef_id)     // ?ef_id ends with `:d`
+			/^di:/i.test(eVar0)      ||  // cid reports starts with `di:`
+			/:d$/i.test(eVar33)      ||  // clean_url ends with `:d`
+			/:d$/i.test(query_ef_id)     // ?ef_id ends with `:d`
 		){
 			retVal = {channel, channel_detail: query_cid}
 		}
