@@ -21,20 +21,29 @@ let processedCsvContent = null;
 
 const viewCsvResultsButton = document.getElementById("view_csv_results");
 const csvResultsTableDiv = document.getElementById("csv-results-table");
+let csvResultsData = null;
+let csvResultsHeaders = null;
+let csvResultsPage = 1;
+const csvResultsPageSize = 10;
 
-function renderCsvResultsTable() {
+function renderCsvResultsTable(page = 1) {
 	if (!processedCsvContent) return;
-	// Parse CSV to array
 	loadPapaParse(() => {
 		const parsed = Papa.parse(processedCsvContent);
 		const data = parsed.data;
 		if (!data || !data.length) return;
+		csvResultsData = data;
+		csvResultsHeaders = data[0];
+		csvResultsPage = page;
 		let html = '<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>';
-		for (const header of data[0]) {
+		for (const header of csvResultsHeaders) {
 			html += `<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header}</th>`;
 		}
 		html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
-		for (let i = 1; i < data.length; i++) {
+		// Paging logic
+		const startIdx = 1 + (page - 1) * csvResultsPageSize;
+		const endIdx = Math.min(startIdx + csvResultsPageSize, data.length);
+		for (let i = startIdx; i < endIdx; i++) {
 			const row = data[i];
 			if (!row.length || row.every(cell => cell === "")) continue;
 			html += '<tr>';
@@ -44,8 +53,21 @@ function renderCsvResultsTable() {
 			html += '</tr>';
 		}
 		html += '</tbody></table>';
+		// Paging controls
+		const totalPages = Math.ceil((data.length - 1) / csvResultsPageSize);
+		if (totalPages > 1) {
+			html += '<div class="flex justify-center items-center mt-4 space-x-2">';
+			html += `<button class="px-3 py-1 rounded bg-gray-200" ${page === 1 ? 'disabled' : ''} onclick="window.csvResultsGoToPage(${page - 1})">Prev</button>`;
+			html += `<span class="px-3">Page ${page} of ${totalPages}</span>`;
+			html += `<button class="px-3 py-1 rounded bg-gray-200" ${page === totalPages ? 'disabled' : ''} onclick="window.csvResultsGoToPage(${page + 1})">Next</button>`;
+			html += '</div>';
+		}
 		csvResultsTableDiv.innerHTML = html;
 		csvResultsTableDiv.style.display = "block";
+		// Expose page change function
+		window.csvResultsGoToPage = function(p) {
+			renderCsvResultsTable(p);
+		};
 	});
 }
 
@@ -136,6 +158,7 @@ function handleCsvUpload(event) {
 				}
 				processedCsvContent = Papa.unparse(output);
 				viewCsvResultsButton.style.display = "inline-block";
+				downloadCsvButton.style.display = "inline-block";
 				csvResultsTableDiv.style.display = "none";
 			},
 			error: function(err) { alert("Error parsing CSV: " + err.message); }
