@@ -314,13 +314,12 @@ export function createMarketingRules(dataElements) {
 		*/
 		var retVal = false,
 			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
-			sessionPageViews = this._satellite.getVar('page_views_session'),
 			isFirstHitOfVisit = this._satellite.getVar('page_views_session') === "1" ? true : false,
 			eVar0 = this._satellite.getVar('cid') || "",
 			channel = "Referring Domains";
 		//console.log("[isReferringDomains()]", {isFirstHitOfVisit, sessionPageViews});
 		if (referrer_hostname && isFirstHitOfVisit) {
-			retVal = true;
+			retVal = {channel,channel_detail:referrer_hostname};
 		}
 		/* Rule 13 Referring Domains
 		IF [ALL] are true:
@@ -332,7 +331,7 @@ export function createMarketingRules(dataElements) {
 		else if (eVar0.startsWith('rd:')) {
 			retVal = {channel,channel_detail:referrer_hostname};
 		}
-		console.log("[isReferringDomains()]", {eVar0, referrer_hostname, sessionPageViews, retVal});
+		console.log("[isReferringDomains()]", {eVar0, referrer_hostname, isFirstHitOfVisit, retVal});
 		return retVal
 	},
 
