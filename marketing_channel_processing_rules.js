@@ -51,6 +51,7 @@ export function createMarketingRules(dataElements) {
 	  if (!referrer_hostname) {
 		return false;
 	  }
+	  // This list of search engines extracted from Adobe on 1/8/2025.
 	  var searchEngineDomains = ["adsensecustomsearchads.com", "aol.co.uk", "aol.com",
 			"baidu.com", "bing.com", "brave.com", "coccoc.com",
 			"dogpile.com", "duckduckgo.com", "ecosia.org",
@@ -134,7 +135,7 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Offline (Vanity url)"
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
-		var retVal = true,
+		var retVal = false,
 	  		channel = "Offline (Vanity url)",
 			channel_detail = eVar0;
 		if (
@@ -186,9 +187,9 @@ export function createMarketingRules(dataElements) {
 			query_cid = url_query.get("cid") || "",
 			query_ef_id = url_query.get("ef_id") || "";
 		if( /^di/i.test(query_cid)   ||  // ?cid starts with `di`
-			/^di:/i.test(eVar0)      ||  // cid reports starts with `di:`
-			/:d$/i.test(eVar33)      ||  // clean_url ends with `:d`
-			/:d$/i.test(query_ef_id)     // ?ef_id ends with `:d`
+			/^di\:/i.test(eVar0)      ||  // cid reports starts with `di:`
+			/\:d$/i.test(eVar33)      ||  // clean_url ends with `:d`
+			/\:d$/i.test(query_ef_id)     // ?ef_id ends with `:d`
 		){
 			retVal = {channel, channel_detail: query_cid}
 		}

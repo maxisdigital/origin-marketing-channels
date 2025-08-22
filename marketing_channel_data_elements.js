@@ -7,18 +7,18 @@
  */
 export function createDataElements(mockWindow) {
   const dataElements = {
-    getVar: function (data_element) {
-      switch (data_element) {
-        case "cid":
-          return this.cid();
-        case "branch_data":
-          return this.branch_data();
-        case "utm_campaign":
-          return this.utm_campaign();
-        case "clean_url":
-          return this.clean_url();
-        case "page_views_session":
-          return this.page_views_session();
+	getVar: function (data_element) {
+	  switch (data_element) {
+		case "cid":
+		  return this.cid();
+		case "branch_data":
+		  return this.branch_data();
+		case "utm_campaign":
+		  return this.utm_campaign();
+		case "clean_url":
+		  return this.clean_url();
+		case "page_views_session":
+		  return this.page_views_session();
 		case "is_native_app":
 			return this.is_native_app();
 		case "query_string":
@@ -27,51 +27,51 @@ export function createDataElements(mockWindow) {
 			return this.query_param_scope();
 		case "user_agent":
 			return this.user_agent();
-        default:
-          return data_element;
-      }
-    },
-    cid: function () {
+		default:
+		  return data_element;
+	  }
+	},
+	cid: function () {
 		/*
 		Name: DE_cid
 		Extension: Core
 		Type: Custom Code
 		Description: Return the value of the ?cid query param or ?utm_campaign or the Branch.io cid field from sessionStorage.
 		*/
-      var getQueryParam = function (key) {
-        var urlParams = new URLSearchParams(mockWindow.location.search);
-        return urlParams.get(key);
-      };
-      var returnVal,
-        cid = getQueryParam("cid") || "",
-        sem = mockWindow.location.search.match(/(\?|\&)(ps%3A|ps:).+=/),
-        referralCode = getQueryParam("referralCode"),
-        branchData = this.getVar("branch_data"),
-        utmCampaign = this.getVar("utm_campaign");
-        //console.log("[DE_cid]", {returnVal, cid, sem, referralCode, branchData, utmCampaign, 'window.location': window.location});
+	  var getQueryParam = function (key) {
+		var urlParams = new URLSearchParams(mockWindow.location.search);
+		return urlParams.get(key);
+	  };
+	  var returnVal,
+		cid = getQueryParam("cid") || "",
+		sem = mockWindow.location.search.match(/(\?|\&)(ps%3A|ps:).+=/),
+		referralCode = getQueryParam("referralCode"),
+		branchData = this.getVar("branch_data"),
+		utmCampaign = this.getVar("utm_campaign");
+		//console.log("[DE_cid]", {returnVal, cid, sem, referralCode, branchData, utmCampaign, 'window.location': window.location});
 
-      if (cid == "RAF" && referralCode) {
-        returnVal = cid + "|" + referralCode;
-      } else if (Array.isArray(sem)) {
-        returnVal = decodeURIComponent(sem[0]).replace(/&|=/, "");
-      } else if (!cid && utmCampaign) {
-        returnVal = utmCampaign;
-      } else if (cid) {
-        returnVal = cid;
-      } else {
-        returnVal = (branchData || {}).cid;
-      }
-      return returnVal || "";
-    },
-    branch_data: function () {
-      return undefined;
-    },
-    utm_campaign: function () {
-      var url = new URL(mockWindow.location.href);
-      var url_query = new URLSearchParams(url.search);
-      return url_query.get("utm_campaign") || "";
-    },
-    clean_url: function () {
+	  if (cid == "RAF" && referralCode) {
+		returnVal = cid + "|" + referralCode;
+	  } else if (Array.isArray(sem)) {
+		returnVal = decodeURIComponent(sem[0]).replace(/&|=/, "");
+	  } else if (!cid && utmCampaign) {
+		returnVal = utmCampaign;
+	  } else if (cid) {
+		returnVal = cid;
+	  } else {
+		returnVal = (branchData || {}).cid;
+	  }
+	  return returnVal || "";
+	},
+	branch_data: function () {
+	  return undefined;
+	},
+	utm_campaign: function () {
+	  var url = new URL(mockWindow.location.href);
+	  var url_query = new URLSearchParams(url.search);
+	  return url_query.get("utm_campaign") || "";
+	},
+	clean_url: function () {
 		/*	DE_clean_url.js
 		Returns a cleaned up version of the url that matches the version stored in Jindabyne.
 
@@ -82,16 +82,18 @@ export function createDataElements(mockWindow) {
 		when (url_evar15 like '%/#%' and position('#' in reverse(url_evar15))<position('/' in reverse(url_evar15))) then (substring(url_evar15,1, position('#' in lower(url_evar15))-1))::VARCHAR(250)
 		else url_evar15::VARCHAR(250) end as url_cleansed,
 		*/
-      return location.protocol + "//" + location.hostname + location.pathname;
-    },
-    page_views_session: function () {
-      // We need to fudge this.
-      return (
-        mockWindow.sessionStorage[
-          "com.adobe.reactor.core.visitorTracking.pagesViewed"
-        ] || undefined
-      );
-    },
+		var location = new URL(mockWindow.location.href)
+		//console.log("[clean_url()]",{location});
+	  	return location.protocol + "//" + location.hostname + location.pathname;
+	},
+	page_views_session: function () {
+	  // We need to fudge this.
+	  return (
+		mockWindow.sessionStorage[
+		  "com.adobe.reactor.core.visitorTracking.pagesViewed"
+		] || undefined
+	  );
+	},
 	is_native_app: function(){
 		var retVal = "no", // Data Element is configured to return "no" by default.
 			location = new URL(mockWindow.location.href),
