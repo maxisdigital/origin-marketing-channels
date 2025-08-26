@@ -33,7 +33,15 @@ function renderCsvResultsTable(page = 1) {
 		const data = parsed.data;
 		if (!data || !data.length) return;
 		csvResultsData = data;
-		csvResultsHeaders = data[0];
+		// Move last three columns to the start
+		if (data[0].length >= 3) {
+			csvResultsHeaders = [
+				...data[0].slice(-3),
+				...data[0].slice(0, -3)
+			];
+		} else {
+			csvResultsHeaders = data[0];
+		}
 		csvResultsPage = page;
 		let html = '<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>';
 		for (const header of csvResultsHeaders) {
@@ -46,9 +54,26 @@ function renderCsvResultsTable(page = 1) {
 		for (let i = startIdx; i < endIdx; i++) {
 			const row = data[i];
 			if (!row.length || row.every(cell => cell === "")) continue;
+			// Move last three columns to the start for each row
+			let reorderedRow;
+			if (row.length >= 3) {
+				reorderedRow = [
+					...row.slice(-3),
+					...row.slice(0, -3)
+				];
+			} else {
+				reorderedRow = row;
+			}
 			html += '<tr>';
-			for (const cell of row) {
-				html += `<td class="px-4 py-2 whitespace-nowrap text-sm">${cell}</td>`;
+			for (let j = 0; j < reorderedRow.length; j++) {
+				const cell = reorderedRow[j];
+				const header = csvResultsHeaders[j] ? csvResultsHeaders[j].toLowerCase() : "";
+				// Apply overflow-hidden and tooltip for url, referrer, user_agent_v96 columns
+				if (["url", "referrer", "user_agent_v96"].includes(header)) {
+					html += `<td class="px-4 py-2 whitespace-nowrap text-sm overflow-hidden text-ellipsis max-w-xs" style="max-width: 200px; position: relative;" title="${cell}"><span style="display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">${cell}</span></td>`;
+				} else {
+					html += `<td class="px-4 py-2 whitespace-nowrap text-sm">${cell}</td>`;
+				}
 			}
 			html += '</tr>';
 		}
@@ -149,7 +174,7 @@ function handleCsvUpload(event) {
 				const data = results.data;
 				if (!data || !data.length) return alert("CSV is empty or invalid.");
 				const headers = data[0];
-				const output = [headers.concat(["Tested Rule", "Matched Channel", "Channel Detail"])]
+				const output = [headers.concat(["Matched Rule", "Matched Channel", "Channel Detail"])]
 				for (let i = 1; i < data.length; i++) {
 					const row = data[i];
 					if (!row.length || row.every(cell => cell === "")) continue;
