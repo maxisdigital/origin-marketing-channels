@@ -27,4 +27,4 @@ https://maxisdigital.github.io/origin-marketing-channels/
   - [X] Rule 18 Personalisation,
   - [X] Rule 19 Direct
 - [ ] Script based test runner
-- [ ] Test against a CSV file.
+- [X] Test against a CSV file.

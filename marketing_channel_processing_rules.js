@@ -21,6 +21,8 @@ export function createMarketingRules(dataElements) {
 			channel_detail = "Page Grouping (eVar26)",
 			isFromSearchEngine = this.isNaturalSearch(referrer),
 			url_query = new URLSearchParams(url.search);
+		// temporary force all isFromSearchEngine to true for testing
+		isFromSearchEngine = true;
 		// Only proceed if the referrer is a search engine.
 		if (isFromSearchEngine) {
 			if (/cid=ps|s_kwcid=AL!|s_kwcid=AL!/i.test(url.search)) {
@@ -137,7 +139,7 @@ export function createMarketingRules(dataElements) {
 			* Channel = "Offline (Vanity url)"
 			* Channel Detail = "CID Reports (eVar0)"
 		*/
-		var retVal = true,
+		var retVal = false,
 	  		channel = "Offline (Vanity url)",
 			channel_detail = eVar0;
 		if (
