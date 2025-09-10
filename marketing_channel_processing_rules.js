@@ -85,11 +85,16 @@ export function createMarketingRules(dataElements) {
 			"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
 			"yandex.kz", "yandex.ru", ];
 
-        // The logic checks if the hostname ends with any of the domains in the list
-		for (var i = 0; i < searchEngineDomains.length; i++) {
-			if (referrer_hostname.endsWith(searchEngineDomains[i])) {
-			retVal = { channel, channel_detail };
-			break;
+		// Handle webmail exceptions
+		if (referrer_hostname.includes("mail")){
+			retVal = false;
+		} else {
+			// The logic checks if the hostname ends with any of the domains in the list
+			for (var i = 0; i < searchEngineDomains.length; i++) {
+				if (referrer_hostname.endsWith(searchEngineDomains[i])) {
+				retVal = { channel, channel_detail };
+				break;
+				}
 			}
 		}
 		console.log("[isNaturalSearch()]", {referrer_hostname, matched: searchEngineDomains[i], retVal});

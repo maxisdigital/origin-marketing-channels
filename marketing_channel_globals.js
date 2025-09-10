@@ -17,6 +17,10 @@ export const examples = {
 		href: "https://www.originenergy.com.au/electricity-gas/plans.html?serviceid=em:service-id",
 		referrer: "",
 	},
+	email3: {
+		href: "https://www.originenergy.com.au/electricity-gas/plans.html?serviceid=em:service-id",
+		referrer: "https://mail.google.com/",
+	},
 	offline: {
 		href: "https://www.originenergy.com.au/pay-my-bill?cid=qr:code",
 		referrer: "",
