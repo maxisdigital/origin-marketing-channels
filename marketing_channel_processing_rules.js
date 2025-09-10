@@ -200,7 +200,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isDisplayClickThrough()]", {eVar0, eVar33, query_cid, query_ef_id, retVal});
 		return retVal;
 	},
-
 	// Rule 8: Social Networks
 	isSocialNetworks: function (url, referrer) {
 		/* Rule 8: Social Networks
@@ -240,7 +239,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isSocialNetworks()]", {eVar0, referrer_hostname, retVal});
 		return retVal;
 	},
-
 	// Rule 9: Third Party
 	isThirdParty: function(){
 		/* Rule 9: Third Party
@@ -260,7 +258,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isThirdParty()]", {eVar0, retVal});
 		return retVal;
 	},
-
 	// Rule 10: Universal Links
 	isUniversalLink: function(){
 		/* Rule 10: Universal Links
@@ -280,7 +277,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isUniversalLink()]", {eVar0, retVal});
 		return retVal;
 	},
-
 	// Rule 11 Magic Links
 	isMagicLink: function(){
 		/* Rule 11 Magic Links
@@ -300,7 +296,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isMagicLink()]", {eVar0, retVal});
 		return retVal;
 	},
-
 	// Rule 12 & 13 Referring Domains
 	isReferringDomains: function(referrer, isFirstHitOfVisit){
 		/* Rule 12 Referring Domains
@@ -314,10 +309,16 @@ export function createMarketingRules(dataElements) {
 		var retVal = false,
 			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
 			isFirstHitOfVisit = this._satellite.getVar('page_views_session') === "1" ? true : false,
+			isInternal = this.isInternal(referrer),
 			eVar0 = this._satellite.getVar('cid') || "",
 			channel = "Referring Domains";
 		//console.log("[isReferringDomains()]", {isFirstHitOfVisit, sessionPageViews});
-		if (referrer_hostname && isFirstHitOfVisit) {
+
+		// If the referrer is internal, we do NOT want to trigger this rule.
+		if (isInternal) {
+			retVal = false;
+		}
+		else if (referrer_hostname && (isFirstHitOfVisit || isInternal!==false)) {
 			retVal = {channel,channel_detail:referrer_hostname};
 		}
 		/* Rule 13 Referring Domains
@@ -330,10 +331,9 @@ export function createMarketingRules(dataElements) {
 		else if (eVar0.startsWith('rd:')) {
 			retVal = {channel,channel_detail:referrer_hostname};
 		}
-		console.log("[isReferringDomains()]", {eVar0, referrer_hostname, isFirstHitOfVisit, retVal});
+		console.log("[isReferringDomains()]", {eVar0, referrer_hostname, isFirstHitOfVisit, retVal, isInternal});
 		return retVal
 	},
-
 	/* Rule 14 Display ViewThrough */
 	isDisplayViewThrough: function(url, referrer){
 		/* Rule 14 Display ViewThrough
@@ -358,7 +358,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isDisplayViewThrough()]", {s_kwcid, url_query, cleanURL, referrer_hostname, retVal});
 		return retVal
 	},
-
 	/* Rule 15 Display (View and Click) */
 	isDisplayViewAndClick: function(url){
 		/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -386,7 +385,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isDisplayViewAndClick()]", {eVar0, s_kwcid, url_query, retVal});
 		return retVal
 	},
-
 	/* Rule 16 Origin App */
 	isOriginApp: function(url, userAgent, digitalData){
 		/* Rule 16 Origin App
@@ -412,7 +410,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isOriginApp()]", {native_wrapper, openInExtBrowser, oiw, retVal});
 		return retVal
 	},
-
 	/* Rule 17 Internal */
 	isInternal: function(referrer){
 		/* Rule 17 Internal
@@ -450,7 +447,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isInternal()]", {referrer_hostname, retVal});
         return retVal ? {channel,channel_detail} : false
 	},
-
 	/* Rule 18 Personalisation */
 	isPersonalisation: function(){
 		/* Rule 18 Personalisation
@@ -471,7 +467,6 @@ export function createMarketingRules(dataElements) {
 		console.log("[isPersonalisation()]", {eVar0, retVal});
 		return retVal
 	},
-
 	/* Rule 19 Direct */
 	isDirect: function(referrer){
 		/* Rule 19 Direct

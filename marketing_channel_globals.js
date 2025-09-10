@@ -103,6 +103,11 @@ export const examples = {
 		href: "https://www.originenergy.com.au/app",
 		isNative: "yes"
 	},
+	originApp7: {
+		href: "https://id.originenergy.com.au/login?state=hKFo2SA2a3J0WUlmc2RscElGNzdZSWNIVUppX1VnODZsTlF6V6FupWxvZ2luo3RpZNkgWHZCOEpaX3lxSjRIem9Kc1daa2ZrTnNHaVRZUjh6V3ejY2lk2SB5T0hSVDk3TjN5SDg1anpURGxxTjJBN0NmMkQwY21RZQ&client=yOHRT97N3yH85jzTDlqN2A7Cf2D0cmQe&protocol=",
+		referrer: "https://www.originenergy.com.au/",
+		userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Mozilla/5.0 (iPhone; CPU iPhone OS 18_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 odin-mobile-app"
+	},
 	internal: {
 		href: "https://www.originenergy.com.au/internal-channel-example",
 		referrer: "https://support.originenergy.com.au"
