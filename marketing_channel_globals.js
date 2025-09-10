@@ -57,6 +57,10 @@ export const examples = {
 		href: "https://www.originenergy.com.au/lpg/offers/?cid=sc:socialnetwork-example",
 		referrer: "https://facebook-adserver.com/",
 	},
+	socialNetwork3: {
+		href: "https://www.originenergy.com.au/lpg/offers/?cid=sc:socialnetwork-example-3",
+		referrer: "https://www.google.com/",
+	},
 	thirdParty: {
 		href: "https://www.originenergy.com.au/internet/plans/?cid=tp:third-party-example",
 		referrer: "https://canstar.com/",

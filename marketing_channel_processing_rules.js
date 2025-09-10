@@ -49,50 +49,54 @@ export function createMarketingRules(dataElements) {
 		 */
 	  var retVal = false,
 		referrer_hostname = referrer instanceof URL ? referrer.hostname : "",
+		eVar0 = this._satellite.getVar('cid') || "",
+		searchEngineDomains = [],
 		channel = "Natural Search",
 		channel_detail = "Search Keyword(s)";
-	  if (!referrer_hostname) {
-		return false;
-	  }
+	if (!referrer_hostname) {
+		retVal = false; // If there is no referrer, it can't be natural search
+	} else if (eVar0) {
+		retVal = false; // If there is a cid, it can't be natural search
+	} else if (referrer_hostname.includes("mail")){
+		// If the referrer hostname contains "mail", it can't be natural search
+		retVal = false;
+	} else {
 	  // This list of search engines extracted from Adobe on 1/8/2025.
-	  var searchEngineDomains = ["adsensecustomsearchads.com", "aol.co.uk", "aol.com",
-			"baidu.com", "bing.com", "brave.com", "coccoc.com",
-			"dogpile.com", "duckduckgo.com", "ecosia.org",
-			"com.google", "google.ae", "google.al", "google.am", "google.as", "google.at",
-			"google.az", "google.ba", "google.be", "google.bg", "google.bi", "google.by",
-			"google.ca", "google.ch", "google.cl", "google.cm", "google.co.bw", "google.co.cr",
-			"google.co.id", "google.co.il", "google.co.in",	"google.co.jp", "google.co.ke",
-			"google.co.kr", "google.co.ls", "google.co.ma", "google.co.nz",	"google.co.th",
-			"google.co.ug", "google.co.uk", "google.co.uz", "google.co.ve", "google.co.za",
-			"google.co.zm", "google.com.ag", "google.com.ai", "google.com.ar", "google.com.au",
-			"google.com.bd", "google.com.bh", "google.com.br", "google.com.co", "google.com.cu",
-			"google.com.cy", "google.com.ec", "google.com.eg", "google.com.fj", "google.com.hk",
-			"google.com.jm", "google.com.kh", "google.com.kw", "google.com.lb", "google.com.mm",
-			"google.com.mt", "google.com.mx", "google.com.my", "google.com.ng", "google.com.np",
-			"google.com.pa", "google.com.pe", "google.com.pg", "google.com.ph", "google.com.pk",
-			"google.com.py", "google.com.qa", "google.com.sa", "google.com.sg", "google.com.tr",
-			"google.com.tw", "google.com.ua", "google.com.uy", "google.com.vc", "google.com.vn",
-			"google.com", "google.cz", "google.de", "google.dk", "google.dz", "google.ee",
-			"google.es", "google.fi", "google.fm", "google.fr", "google.gg", "google.gr",
-			"google.gy", "google.hr", "google.hu", "google.ie", "google.iq", "google.is",
-			"google.it", "google.je", "google.jo", "google.kg", "google.kz", "google.lk",
-			"google.lt", "google.lu", "google.lv", "google.mn", "google.mu", "google.nl",
-			"google.no", "google.pl", "google.pt", "google.ro", "google.rs", "google.ru",
-			"google.rw", "google.sc", "google.se", "google.sh", "google.si", "google.sk",
-			"google.tn", "google.vg", "google.ws", "googleadservices.com",
-			"naver.com", "petalsearch.com", "presearch.com",
-			"qwant.com", "so.com", "startpage.com", "syndicatedsearch.goog",
-			"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
-			"yandex.kz", "yandex.ru", ];
+	  searchEngineDomains = ["adsensecustomsearchads.com", "aol.co.uk", "aol.com",
+		"baidu.com", "bing.com", "brave.com", "coccoc.com",
+		"dogpile.com", "duckduckgo.com", "ecosia.org",
+		"com.google", "google.ae", "google.al", "google.am", "google.as", "google.at",
+		"google.az", "google.ba", "google.be", "google.bg", "google.bi", "google.by",
+		"google.ca", "google.ch", "google.cl", "google.cm", "google.co.bw", "google.co.cr",
+		"google.co.id", "google.co.il", "google.co.in",	"google.co.jp", "google.co.ke",
+		"google.co.kr", "google.co.ls", "google.co.ma", "google.co.nz",	"google.co.th",
+		"google.co.ug", "google.co.uk", "google.co.uz", "google.co.ve", "google.co.za",
+		"google.co.zm", "google.com.ag", "google.com.ai", "google.com.ar", "google.com.au",
+		"google.com.bd", "google.com.bh", "google.com.br", "google.com.co", "google.com.cu",
+		"google.com.cy", "google.com.ec", "google.com.eg", "google.com.fj", "google.com.hk",
+		"google.com.jm", "google.com.kh", "google.com.kw", "google.com.lb", "google.com.mm",
+		"google.com.mt", "google.com.mx", "google.com.my", "google.com.ng", "google.com.np",
+		"google.com.pa", "google.com.pe", "google.com.pg", "google.com.ph", "google.com.pk",
+		"google.com.py", "google.com.qa", "google.com.sa", "google.com.sg", "google.com.tr",
+		"google.com.tw", "google.com.ua", "google.com.uy", "google.com.vc", "google.com.vn",
+		"google.com", "google.cz", "google.de", "google.dk", "google.dz", "google.ee",
+		"google.es", "google.fi", "google.fm", "google.fr", "google.gg", "google.gr",
+		"google.gy", "google.hr", "google.hu", "google.ie", "google.iq", "google.is",
+		"google.it", "google.je", "google.jo", "google.kg", "google.kz", "google.lk",
+		"google.lt", "google.lu", "google.lv", "google.mn", "google.mu", "google.nl",
+		"google.no", "google.pl", "google.pt", "google.ro", "google.rs", "google.ru",
+		"google.rw", "google.sc", "google.se", "google.sh", "google.si", "google.sk",
+		"google.tn", "google.vg", "google.ws", "googleadservices.com",
+		"naver.com", "petalsearch.com", "presearch.com",
+		"qwant.com", "so.com", "startpage.com", "syndicatedsearch.goog",
+		"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
+		"yandex.kz", "yandex.ru", ];
 
-		// Handle webmail exceptions
-		if (referrer_hostname.includes("mail")){
-			retVal = false;
-		} else {
 			// The logic checks if the hostname ends with any of the domains in the list
 			for (var i = 0; i < searchEngineDomains.length; i++) {
 				if (referrer_hostname.endsWith(searchEngineDomains[i])) {
-				retVal = { channel, channel_detail };
+					//_satellite.logger.log('[DE_marketing_channels]', "checking", referrer_hostname, "ends with", searchEngineDomains[i]);
+					retVal = { channel, channel_detail };
 				break;
 				}
 			}
