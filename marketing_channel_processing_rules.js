@@ -18,25 +18,23 @@ export function createMarketingRules(dataElements) {
 		*/
 		var retVal,
 			channel = "Paid Search",
-			channel_detail = "Page Grouping (eVar26)",
 			isFromSearchEngine = this.isNaturalSearch(referrer),
+			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
 			url_query = new URLSearchParams(url.search);
-		// temporary force all isFromSearchEngine to true for testing
-		isFromSearchEngine = true;
 		// Only proceed if the referrer is a search engine.
-		if (isFromSearchEngine) {
+		if(isFromSearchEngine || referrer_hostname.includes("youtube")){
 			if (/cid=ps|s_kwcid=AL!|s_kwcid=AL!/i.test(url.search)) {
-			retVal = true;
-			} else if ((url_query.get("cid") || "").startsWith("AL!")) {
-			retVal = true;
+				retVal = true
+			} else if( (url_query.get('cid')||"").startsWith("AL!") ){
+				retVal = true
 			} else if (/&ps%3|\?ps%3|&ps:|\?ps:/i.test(url.href)) {
-			retVal = true;
-			} else if (url_query.get("gclid")) {
-			retVal = true;
+				retVal = true
+			} else if( url_query.get('gclid') ){
+				retVal = true
 			}
 		}
-		console.log("[isPaidSearch()]", {url_query, channel,channel_detail, retVal});
-		return retVal ? { channel, channel_detail } : false;
+		//console.log("[isPaidSearch()]", {url_query, channel,channel_detail, retVal});
+		return retVal ? { channel, channel_detail: "Page Grouping (eVar26)" } : false;
 	},
 	// Rule 2: Natural Search
 	isNaturalSearch: function (referrer) {
