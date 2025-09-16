@@ -132,11 +132,10 @@ export function createMarketingRules(dataElements) {
 		else if (query_serviceId.startsWith("em")) {
 			retVal = {channel, channel_detail: query_serviceId};
 		}
-		console.log("[isEmail()]", {eVar0, query_cid, query_serviceId, retVal});
+		//console.log("[isEmail()]", {eVar0, query_cid, query_serviceId, retVal});
 		return retVal;
 	},
 	// Rule 5: Offline (Vanity url)
-	// @param {url} url - The URL object to check.
 	isOfflineVanityUrl: function (url) {
 	  	var eVar0 = this._satellite.getVar("cid") || "";
 		/* Rule 5: Offline (Vanity url)
@@ -156,7 +155,7 @@ export function createMarketingRules(dataElements) {
 		) {
 			retVal = { channel, channel_detail };
 		}
-		console.log("[isOfflineVanityUrl()]", {eVar0, retVal});
+		//console.log("[isOfflineVanityUrl()]", {eVar0, retVal});
 		return retVal;
 	},
 	// Rule 6: SMS / Push
@@ -175,7 +174,7 @@ export function createMarketingRules(dataElements) {
 		if (eVar0.startsWith("sms:") || eVar0.startsWith("push:")) {
 			retVal = { channel, channel_detail: eVar0 };
 		}
-		console.log("[isSMSorPushNotification()]", {eVar0, retVal});
+		//console.log("[isSMSorPushNotification()]", {eVar0, retVal});
 		return retVal;
 	},
 	// Rule 7: Display ClickThrough
@@ -204,7 +203,7 @@ export function createMarketingRules(dataElements) {
 		){
 			retVal = {channel, channel_detail: query_cid}
 		}
-		console.log("[isDisplayClickThrough()]", {eVar0, eVar33, query_cid, query_ef_id, retVal});
+		//console.log("[isDisplayClickThrough()]", {eVar0, eVar33, query_cid, query_ef_id, retVal});
 		return retVal;
 	},
 	// Rule 8: Social Networks
@@ -243,7 +242,7 @@ export function createMarketingRules(dataElements) {
 		if(eVar0.startsWith('sc:')) {
 			retVal = {channel, channel_detail:referrer_hostname};
 		}
-		console.log("[isSocialNetworks()]", {eVar0, referrer_hostname, retVal});
+		//console.log("[isSocialNetworks()]", {eVar0, referrer_hostname, retVal});
 		return retVal;
 	},
 	// Rule 9: Third Party
@@ -262,7 +261,7 @@ export function createMarketingRules(dataElements) {
 		if (eVar0.startsWith('tp:')) {
 			return {channel, channel_detail};
 		}
-		console.log("[isThirdParty()]", {eVar0, retVal});
+		//console.log("[isThirdParty()]", {eVar0, retVal});
 		return retVal;
 	},
 	// Rule 10: Universal Links
@@ -281,7 +280,7 @@ export function createMarketingRules(dataElements) {
 		if (eVar0.startsWith('ul:')) {
 			return {channel, channel_detail};
 		}
-		console.log("[isUniversalLink()]", {eVar0, retVal});
+		//console.log("[isUniversalLink()]", {eVar0, retVal});
 		return retVal;
 	},
 	// Rule 11 Magic Links
@@ -300,7 +299,7 @@ export function createMarketingRules(dataElements) {
 		if (eVar0.startsWith('ml:')) {
 			return {channel, channel_detail};
 		}
-		console.log("[isMagicLink()]", {eVar0, retVal});
+		//console.log("[isMagicLink()]", {eVar0, retVal});
 		return retVal;
 	},
 	// Rule 12 & 13 Referring Domains
@@ -389,7 +388,7 @@ export function createMarketingRules(dataElements) {
 		if (s_kwcid.startsWith('AC!')) {
 			retVal = {channel,channel_detail:eVar0}
 		}
-		console.log("[isDisplayViewAndClick()]", {eVar0, s_kwcid, url_query, retVal});
+		//console.log("[isDisplayViewAndClick()]", {eVar0, s_kwcid, url_query, retVal});
 		return retVal
 	},
 	/* Rule 16 Origin App */
@@ -414,7 +413,7 @@ export function createMarketingRules(dataElements) {
 			retVal = {channel,channel_detail:"Page Domain And Path"}
 		}
 		// Uncomment to debug
-		console.log("[isOriginApp()]", {native_wrapper, openInExtBrowser, oiw, retVal});
+		//console.log("[isOriginApp()]", {native_wrapper, openInExtBrowser, oiw, retVal});
 		return retVal
 	},
 	/* Rule 17 Internal */
@@ -430,8 +429,7 @@ export function createMarketingRules(dataElements) {
 		*/
 		var retVal = false,
 			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
-			channel = "Internal",
-			channel_detail = "Page"
+			channel = "Internal";
 		if (!referrer_hostname) {
             retVal = false;
         }
@@ -451,8 +449,8 @@ export function createMarketingRules(dataElements) {
                 retVal = true;
             }
         }
-		console.log("[isInternal()]", {referrer_hostname, retVal});
-        return retVal ? {channel,channel_detail} : false
+		//console.log("[isInternal()]", {referrer_hostname, retVal});
+        return retVal ? {channel,channel_detail: "Page"} : false
 	},
 	/* Rule 18 Personalisation */
 	isPersonalisation: function(){
@@ -466,12 +464,11 @@ export function createMarketingRules(dataElements) {
 		*/
 		var retVal = false,
 			eVar0 = this._satellite.getVar('cid') || "";
-		var channel = "Personalisation",
-			channel_detail = "Button / Link Name (eVar29)";
+		var channel = "Personalisation";
 		if (eVar0.startsWith('ccd') || eVar0.startsWith('ccrf') || eVar0.startsWith('hpb')) {
-			retVal = {channel, channel_detail};
+			return {channel, channel_detail: s?.eVar29 || "Button / Link Name (eVar29)"};
 		}
-		console.log("[isPersonalisation()]", {eVar0, retVal});
+		//console.log("[isPersonalisation()]", {eVar0, retVal});
 		return retVal
 	},
 	/* Rule 19 Direct */
@@ -487,14 +484,13 @@ export function createMarketingRules(dataElements) {
 		var retVal = false,
 			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
 			isFirstHitOfVisit = this._satellite.getVar('page_views_session') === "1" ? true : false,
-			channel = "Direct",
-			channel_detail = "Page";
+			channel = "Direct";
 		if (referrer_hostname === "" && isFirstHitOfVisit) {
-			retVal = {channel,channel_detail};
+			retVal = {channel, channel_detail:"Page"};
 		}
-		console.log("[isDirect()]", {referrer_hostname, isFirstHitOfVisit, retVal});
+		//console.log("[isDirect()]", {referrer_hostname, isFirstHitOfVisit, retVal});
 		return retVal
-	},
+	}
   }
   return marketingRules;
 }
