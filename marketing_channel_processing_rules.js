@@ -1,6 +1,50 @@
 export function createMarketingRules(dataElements) {
   const marketingRules = {
 	_satellite: dataElements,
+	// Add this new helper function to your marketingRules object
+	isSearchEngine: function (referrer) {
+		var referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "";
+		if (!referrer_hostname || referrer_hostname.includes("mail")) {
+			return false;
+		}
+		// This list of search engines extracted from Adobe on 1/8/2025.
+		var searchEngineDomains = ["adsensecustomsearchads.com", "aol.co.uk", "aol.com",
+			"baidu.com", "bing.com", "brave.com", "coccoc.com",
+			"dogpile.com", "duckduckgo.com", "googleads.g.doubleclick.net", "ecosia.org",
+			"com.google", "google.ae", "google.al", "google.am", "google.as", "google.at",
+			"google.az", "google.ba", "google.be", "google.bg", "google.bi", "google.by",
+			"google.ca", "google.ch", "google.cl", "google.cm", "google.co.bw", "google.co.cr",
+			"google.co.id", "google.co.il", "google.co.in",	"google.co.jp", "google.co.ke",
+			"google.co.kr", "google.co.ls", "google.co.ma", "google.co.nz",	"google.co.th",
+			"google.co.ug", "google.co.uk", "google.co.uz", "google.co.ve", "google.co.za",
+			"google.co.zm", "google.com.ag", "google.com.ai", "google.com.ar", "google.com.au",
+			"google.com.bd", "google.com.bh", "google.com.br", "google.com.co", "google.com.cu",
+			"google.com.cy", "google.com.ec", "google.com.eg", "google.com.fj", "google.com.hk",
+			"google.com.jm", "google.com.kh", "google.com.kw", "google.com.lb", "google.com.mm",
+			"google.com.mt", "google.com.mx", "google.com.my", "google.com.ng", "google.com.np",
+			"google.com.pa", "google.com.pe", "google.com.pg", "google.com.ph", "google.com.pk",
+			"google.com.py", "google.com.qa", "google.com.sa", "google.com.sg", "google.com.tr",
+			"google.com.tw", "google.com.ua", "google.com.uy", "google.com.vc", "google.com.vn",
+			"google.com", "google.cz", "google.de", "google.dk", "google.dz", "google.ee",
+			"google.es", "google.fi", "google.fm", "google.fr", "google.gg", "google.gr",
+			"google.gy", "google.hr", "google.hu", "google.ie", "google.iq", "google.is",
+			"google.it", "google.je", "google.jo", "google.kg", "google.kz", "google.lk",
+			"google.lt", "google.lu", "google.lv", "google.mn", "google.mu", "google.nl",
+			"google.no", "google.pl", "google.pt", "google.ro", "google.rs", "google.ru",
+			"google.rw", "google.sc", "google.se", "google.sh", "google.si", "google.sk",
+			"google.tn", "google.vg", "google.ws", "googleadservices.com",
+			"naver.com", "petalsearch.com", "presearch.com",
+			"qwant.com", "so.com", "startpage.com", "syndicatedsearch.goog",
+			"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
+			"yandex.kz", "yandex.ru", "youtube.com" ];
+
+		for (var i = 0; i < searchEngineDomains.length; i++) {
+			if (referrer_hostname.endsWith(searchEngineDomains[i])) {
+				return true; // Found a match
+			}
+		}
+    	return false; // No match found
+	},
 	isPaidSearch: function (url, referrer) {
 	/* Rule 1: Paid Search
 		IF [ANY] are true:
@@ -17,19 +61,20 @@ export function createMarketingRules(dataElements) {
 				 trying to faithfully match the Marketing Channel Processing Rules
 		*/
 		var retVal,
-			channel = "Paid Search",
-			isFromSearchEngine = this.isNaturalSearch(referrer),
-			referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
-			url_query = new URLSearchParams(url.search);
+        	channel = "Paid Search",
+        	isFromSearchEngine = this.isSearchEngine(referrer),
+        	referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
+        	url_query = new URLSearchParams(url.search);
+
 		// Only proceed if the referrer is a search engine.
-		if(isFromSearchEngine || referrer_hostname.includes("youtube")){
-			if (/cid=ps|s_kwcid=AL!|s_kwcid=AL!/i.test(url.search)) {
+		if (isFromSearchEngine) { // The youtube check can be removed as youtube.com is in the list
+			if (/cid=ps[:|%3A]|s_kwcid=AL!/i.test(url.search)) { // Simplified regex
 				retVal = true
-			} else if( (url_query.get('cid')||"").startsWith("AL!") ){
+			} else if ((url_query.get('cid')||"").startsWith("ps:")) {
 				retVal = true
 			} else if (/&ps%3|\?ps%3|&ps:|\?ps:/i.test(url.href)) {
 				retVal = true
-			} else if( url_query.get('gclid') ){
+			} else if (url_query.get('gclid')) {
 				retVal = true
 			}
 		}
@@ -38,72 +83,31 @@ export function createMarketingRules(dataElements) {
 	},
 	// Rule 2: Natural Search
 	isNaturalSearch: function (referrer) {
-	/* Rule 2: Natural Search
+		/* Rule 2: Natural Search
 		IF [ALL] are true:
-			  * [MATCHES] Natural Search Detection Rules [https://experienceleague.adobe.com/en/docs/analytics/components/dimensions/search-engine]
+				* [MATCHES] Natural Search Detection Rules [https://experienceleague.adobe.com/en/docs/analytics/components/dimensions/search-engine]
 		THEN
-			  * Channel = "Natural Search"
-			  * Channel Detail = "Search Engine + Search Keyword(s)" NOTE: This doesn't work any more for a looong time.
-		 */
-	  var retVal = false,
-		referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
-		eVar0 = this._satellite.getVar('cid') || "",
-		searchEngineDomains = [],
-		channel = "Natural Search",
-		channel_detail = "Search Keyword(s)";
-	if (!referrer_hostname) {
-		retVal = false; // If there is no referrer, it can't be natural search
-	} else if (eVar0) {
-		retVal = false; // If there is a cid, it can't be natural search
-	} else if (referrer_hostname.includes("mail")){
-		// If the referrer hostname contains "mail", it can't be natural search
-		retVal = false;
-	} else {
-	  // This list of search engines extracted from Adobe on 1/8/2025.
-	  searchEngineDomains = ["adsensecustomsearchads.com", "aol.co.uk", "aol.com",
-		"baidu.com", "bing.com", "brave.com", "coccoc.com",
-			"dogpile.com", "duckduckgo.com", "googleads.g.doubleclick.net", "ecosia.org",
-		"com.google", "google.ae", "google.al", "google.am", "google.as", "google.at",
-		"google.az", "google.ba", "google.be", "google.bg", "google.bi", "google.by",
-		"google.ca", "google.ch", "google.cl", "google.cm", "google.co.bw", "google.co.cr",
-		"google.co.id", "google.co.il", "google.co.in",	"google.co.jp", "google.co.ke",
-		"google.co.kr", "google.co.ls", "google.co.ma", "google.co.nz",	"google.co.th",
-		"google.co.ug", "google.co.uk", "google.co.uz", "google.co.ve", "google.co.za",
-		"google.co.zm", "google.com.ag", "google.com.ai", "google.com.ar", "google.com.au",
-		"google.com.bd", "google.com.bh", "google.com.br", "google.com.co", "google.com.cu",
-		"google.com.cy", "google.com.ec", "google.com.eg", "google.com.fj", "google.com.hk",
-		"google.com.jm", "google.com.kh", "google.com.kw", "google.com.lb", "google.com.mm",
-		"google.com.mt", "google.com.mx", "google.com.my", "google.com.ng", "google.com.np",
-		"google.com.pa", "google.com.pe", "google.com.pg", "google.com.ph", "google.com.pk",
-		"google.com.py", "google.com.qa", "google.com.sa", "google.com.sg", "google.com.tr",
-		"google.com.tw", "google.com.ua", "google.com.uy", "google.com.vc", "google.com.vn",
-		"google.com", "google.cz", "google.de", "google.dk", "google.dz", "google.ee",
-		"google.es", "google.fi", "google.fm", "google.fr", "google.gg", "google.gr",
-		"google.gy", "google.hr", "google.hu", "google.ie", "google.iq", "google.is",
-		"google.it", "google.je", "google.jo", "google.kg", "google.kz", "google.lk",
-		"google.lt", "google.lu", "google.lv", "google.mn", "google.mu", "google.nl",
-		"google.no", "google.pl", "google.pt", "google.ro", "google.rs", "google.ru",
-		"google.rw", "google.sc", "google.se", "google.sh", "google.si", "google.sk",
-		"google.tn", "google.vg", "google.ws", "googleadservices.com",
-		"naver.com", "petalsearch.com", "presearch.com",
-		"qwant.com", "so.com", "startpage.com", "syndicatedsearch.goog",
-		"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
-		"yandex.kz", "yandex.ru", "youtube.com" ];
+				* Channel = "Natural Search"
+				* Channel Detail = "Search Engine + Search Keyword(s)" NOTE: This doesn't work any more for a looong time.
+		*/
+	    var eVar0 = this._satellite.getVar('cid') || "",
+        	channel = "Natural Search",
+        	channel_detail = "Search Keyword(s)";
 
-			// The logic checks if the hostname ends with any of the domains in the list
-			for (var i = 0; i < searchEngineDomains.length; i++) {
-				if (referrer_hostname.endsWith(searchEngineDomains[i])) {
-					//_satellite.logger.log('[DE_marketing_channels]', "checking", referrer_hostname, "ends with", searchEngineDomains[i]);
-					retVal = { channel, channel_detail };
-				break;
-				}
-			}
+		// If there is a cid, then it can't be natural search.
+		if (eVar0) {
+			retVal = false;
 		}
+
+		// Now, check if it was from a search engine.
+		if (this.isSearchEngine(referrer)) {
+			retVal = { channel, channel_detail };
+		}
+
 		//console.log("[isNaturalSearch()]", {referrer_hostname, matched: searchEngineDomains[i], retVal});
 	 	return retVal
 	},
 	// Rule 3 & 4: Email
-	  // @param {url} url - The URL object to check.
 	isEmail: function (url) {
 		var url_query = new URLSearchParams(url.search);
 		var retVal = false,
