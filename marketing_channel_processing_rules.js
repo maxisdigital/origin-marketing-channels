@@ -99,7 +99,7 @@ export function createMarketingRules(dataElements) {
 				}
 			}
 		}
-		console.log("[isNaturalSearch()]", {referrer_hostname, matched: searchEngineDomains[i], retVal});
+		//console.log("[isNaturalSearch()]", {referrer_hostname, matched: searchEngineDomains[i], retVal});
 	 	return retVal
 	},
 	// Rule 3 & 4: Email
