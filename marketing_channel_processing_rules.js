@@ -46,7 +46,7 @@ export function createMarketingRules(dataElements) {
 			  * Channel Detail = "Search Engine + Search Keyword(s)" NOTE: This doesn't work any more for a looong time.
 		 */
 	  var retVal = false,
-		referrer_hostname = referrer instanceof URL ? referrer.hostname : "",
+		referrer_hostname = (referrer instanceof URL) ? referrer.hostname : "",
 		eVar0 = this._satellite.getVar('cid') || "",
 		searchEngineDomains = [],
 		channel = "Natural Search",
@@ -62,7 +62,7 @@ export function createMarketingRules(dataElements) {
 	  // This list of search engines extracted from Adobe on 1/8/2025.
 	  searchEngineDomains = ["adsensecustomsearchads.com", "aol.co.uk", "aol.com",
 		"baidu.com", "bing.com", "brave.com", "coccoc.com",
-		"dogpile.com", "duckduckgo.com", "ecosia.org",
+			"dogpile.com", "duckduckgo.com", "googleads.g.doubleclick.net", "ecosia.org",
 		"com.google", "google.ae", "google.al", "google.am", "google.as", "google.at",
 		"google.az", "google.ba", "google.be", "google.bg", "google.bi", "google.by",
 		"google.ca", "google.ch", "google.cl", "google.cm", "google.co.bw", "google.co.cr",
@@ -88,7 +88,7 @@ export function createMarketingRules(dataElements) {
 		"naver.com", "petalsearch.com", "presearch.com",
 		"qwant.com", "so.com", "startpage.com", "syndicatedsearch.goog",
 		"ya.ru","yahoo.co.jp", "yahoo.com", "yandex.com.tr", "yandex.com",
-		"yandex.kz", "yandex.ru", ];
+		"yandex.kz", "yandex.ru", "youtube.com" ];
 
 			// The logic checks if the hostname ends with any of the domains in the list
 			for (var i = 0; i < searchEngineDomains.length; i++) {
